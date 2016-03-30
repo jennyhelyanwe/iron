@@ -3078,7 +3078,7 @@ CONTAINS
             cauchyStressTensor(mh,nh)=cauchyStressVoigt(TENSOR_TO_VOIGT3(mh,nh))
           ENDDO
         ENDDO
-      CASE(EQUATIONS_SET_ORTHOTROPIC_MATERIAL_COSTA_SUBTYPE)
+      CASE(EQUATIONS_SET_ORTHOTROPIC_MATERIAL_COSTA_SUBTYPE, EQUATIONS_SET_TRANSVERSE_ISOTROPIC_GUCCIONE_SUBTYPE)
         CALL FINITE_ELASTICITY_GAUSS_CAUCHY_TENSOR(equationsSet,dependentInterpolatedPoint, &
           & materialsInterpolatedPoint,darcyInterpolatedPoint, &
           & independentInterpolatedPoint,cauchyStressTensor,Jznu,dZdNu,localElementNumber,0,ERR,ERROR,*999)
@@ -4089,7 +4089,7 @@ CONTAINS
       PIOLA_TENSOR(3,2)=PIOLA_TENSOR(2,3)
       PIOLA_TENSOR(3,3)=(C(2)+C(4)*E(3,3))*TEMPTERM+2.0_DP*P*AZU(3,3)
     CASE(EQUATIONS_SET_TRANSVERSE_ISOTROPIC_GUCCIONE_SUBTYPE,EQUATIONS_SET_GUCCIONE_ACTIVECONTRACTION_SUBTYPE)
-      ! W=C1*exp*(Q) + p(J-1)
+      ! W=C1/2*exp*(Q) + p(J-1)
       ! Q=C2*E(1,1)^2 + C3*(E(2,2)^2+E(3,3)^2+2*E(2,3)*E(3,2)) + 2*C4*(E(1,2)*E(2,1)+E(1,3)*E(3,1))
       Q=C(2)*E(1,1)**2 + C(3)*(E(2,2)**2+E(3,3)**2+2.0_DP*E(2,3)**2) + 2.0_DP*C(4)*(E(1,2)**2+E(1,3)**2)
       TEMPTERM=C(1)*exp(Q) ! iso term
@@ -4102,7 +4102,7 @@ CONTAINS
       PIOLA_TENSOR(3,1) = PIOLA_TENSOR(1,3)
       PIOLA_TENSOR(3,2) = C(3) * E(2,3)
       PIOLA_TENSOR(2,3) = PIOLA_TENSOR(3,2)
-      PIOLA_TENSOR = PIOLA_TENSOR * 2.0_DP * TEMPTERM
+      PIOLA_TENSOR = PIOLA_TENSOR * TEMPTERM
       ! pressure terms
 !      
 ! TEMP DURING MERGE
@@ -4122,8 +4122,8 @@ CONTAINS
 !          PIOLA_TENSOR(1,1)=PIOLA_TENSOR(1,1)+VALUE
 !        ENDDO
 !      ENDIF
-      !PIOLA_TENSOR = PIOLA_TENSOR + 2.0_DP*p*Jznu*AZU   ! is Jznu required here, or is it omitted everywhere else?
-      PIOLA_TENSOR = PIOLA_TENSOR - p*AZU   ! is Jznu required here, or is it omitted everywhere else?
+      PIOLA_TENSOR = PIOLA_TENSOR + 2.0_DP*p*Jznu*AZU   ! is Jznu required here, or is it omitted everywhere else?
+      !PIOLA_TENSOR = PIOLA_TENSOR - p*AZU   ! is Jznu required here, or is it omitted everywhere else?
       IF(EQUATIONS_SET_SUBTYPE==EQUATIONS_SET_GUCCIONE_ACTIVECONTRACTION_SUBTYPE) THEN
       !add active contraction stress value to the trace of the stress tensor - basically adding to hydrostatic pressure.
       !the active stress is stored inside the independent field that has been set up in the user program.
