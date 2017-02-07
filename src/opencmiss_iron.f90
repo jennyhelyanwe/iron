@@ -3223,7 +3223,7 @@ MODULE OpenCMISS_Iron
 
   PUBLIC cmfe_EquationsSet_SpecificationGet,cmfe_EquationsSet_SpecificationSizeGet
 
-  PUBLIC cmfe_EquationsSet_TensorInterpolateXi
+  PUBLIC cmfe_EquationsSet_TensorInterpolateXi 
 
   PUBLIC cmfe_EquationsSet_AnalyticUserParamSet,cmfe_EquationsSet_AnalyticUserParamGet
 
