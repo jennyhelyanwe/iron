@@ -1379,7 +1379,7 @@ CONTAINS
     CALL MatrixProduct(deformationGradientTensorT, deformationGradientTensor, rightCauchyDeformationTensor,err,error,*999)
     !CALL MatrixTransposeProduct(deformationGradientTensor,deformationGradientTensor,rightCauchyDeformationTensor,err,error,*999)
     CALL Invert(rightCauchyDeformationTensor,fingerDeformationTensor,I3,err,error,*999)
-    Jacobian=I3**0.5_DP
+    Jacobian=DETERMINANT(deformationGradientTensor,err,error)
 
     greenStrainTensor=0.5_DP*rightCauchyDeformationTensor
     DO i=1,3
@@ -1448,6 +1448,7 @@ CONTAINS
     TYPE(BASIS_TYPE), POINTER :: DEPENDENT_BASIS_1,GEOMETRIC_BASIS
     TYPE(DECOMPOSITION_TYPE), POINTER :: DECOMPOSITION
     TYPE(DOMAIN_MAPPING_TYPE), POINTER :: DOMAIN_ELEMENT_MAPPING
+    TYPE(VARYING_STRING) :: LOCAL_ERROR
     LOGICAL :: DARCY_DENSITY,DARCY_DEPENDENT
     INTEGER(INTG) :: component_idx,component_idx2,parameter_idx,gauss_idx,element_dof_idx,FIELD_VAR_TYPE,DARCY_FIELD_VAR_TYPE
     INTEGER(INTG) :: imatrix,Ncompartments
@@ -1850,6 +1851,14 @@ CONTAINS
             !Calculate F=dZ/dNU, the deformation gradient tensor at the gauss point
             CALL FiniteElasticity_GaussDeformationGradientTensor(DEPENDENT_INTERPOLATED_POINT_METRICS, &
               & GEOMETRIC_INTERPOLATED_POINT_METRICS,FIBRE_INTERPOLATED_POINT,DZDNU,ERR,ERROR,*999)
+            Jznu=DETERMINANT(DZDNU,ERR,ERROR)
+            IF(Jznu<0.0_DP) THEN
+              LOCAL_ERROR = "Warning: Volume is negative for gauss point "//TRIM(NUMBER_TO_VSTRING(gauss_idx,"*",ERR,ERROR))//&
+                & " element "//TRIM(NUMBER_TO_VSTRING(ELEMENT_NUMBER,"*",ERR,ERROR))
+              CALL FlagWarning(LOCAL_ERROR,ERR,ERROR,*999)  
+              LOCAL_ERROR = "DET(F) = "//TRIM(NUMBER_TO_VSTRING(Jznu,"*",ERR,ERROR))
+              CALL FlagWarning(LOCAL_ERROR,ERR,ERROR,*999) 
+            ENDIF
 
             Jzxi=DEPENDENT_INTERPOLATED_POINT_METRICS%JACOBIAN
             Jxxi=GEOMETRIC_INTERPOLATED_POINT_METRICS%JACOBIAN
@@ -3704,6 +3713,7 @@ CONTAINS
 
     CALL MATRIX_TRANSPOSE(DZDNU,DZDNUT,ERR,ERROR,*999)
     CALL MATRIX_PRODUCT(DZDNUT,DZDNU,AZL,ERR,ERROR,*999)
+    Jznu = DETERMINANT(DZDNU,ERR,ERROR)
 
     PRESSURE_COMPONENT=DEPENDENT_INTERPOLATED_POINT%INTERPOLATION_PARAMETERS%FIELD_VARIABLE%NUMBER_OF_COMPONENTS
     P=DEPENDENT_INTERPOLATED_POINT%VALUES(PRESSURE_COMPONENT,1)
@@ -5395,7 +5405,7 @@ CONTAINS
 
     CALL MatrixTransposeProduct(deformationGradientTensor,deformationGradientTensor,rightCauchyDeformationTensor,err,error,*999)
     CALL Invert(rightCauchyDeformationTensor,fingerDeformationTensor,I3,err,error,*999)
-    Jacobian=I3**0.5_DP
+    Jacobian=DETERMINANT(deformationGradientTensor,err,error)
 
     greenStrainTensor=0.5_DP*rightCauchyDeformationTensor
     DO i=1,3
